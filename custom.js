@@ -1,9 +1,30 @@
+/*===================================Global rules=======================================*/
+// default check if any user is logged in
+window.addEventListener('load', () => {
+    try {
+        let session_list = sessionStorage.getItem('loggedIn');
+        let isAlreadyLogged = JSON.parse(session_list);
+        if(isAlreadyLogged.rememberMe) {
+            setTimeout(()=>{
+                // alert("Are you sure you want to leave page?")
+                gotoDashBoard.style.display = "block";
+                gotoLogin.style.display = "none";
+                defaultPage.style.display = "none";
+            }, 1000);
+        }
+    } catch (e) {
+        console.log();
+    }
+});
+
 const targetlink = document.querySelector("#gotoRegister");
 const targetlink2 = document.querySelector("#gotoLogin");
 const gotoLogin = document.querySelector("#Login");
 const gotoRegister = document.querySelector("#Register");
 const gotoDashBoard = document.querySelector("#dashboard");
 const defaultPage = document.querySelector("#default");
+
+
 
 /*===============================Action on default btns==================================*/
 const signIn = document.querySelector("#signIn");
@@ -27,6 +48,8 @@ function landTo(event) {
     }
 }
 
+
+
 /*================================Login/Register and redirects==========================================*/
 targetlink.addEventListener("click", hideShowSections, {once: true, passive:false});
 
@@ -49,6 +72,8 @@ function hideShowSections(event) {
     }
 }
 
+
+
 /*===================================Register=======================================*/
 const registerForm = document.getElementById("signup-form");
 let errorSpace = registerForm.querySelector('.error');
@@ -58,6 +83,7 @@ registerForm.addEventListener('submit', register, {once: true, passive:false});
 
 function register(e) {
     e.preventDefault();
+
     // formfields
     const firstname = registerForm.querySelector("#first_name").value;
     const lastname = registerForm.querySelector("#last_name").value;
@@ -66,29 +92,25 @@ function register(e) {
     const password1 = registerForm.querySelector("#password2").value;
     const tcsChecked = registerForm.querySelector("#terms");
     errorSpace.innerHTML = "";
+
     if(firstname !== '' && lastname !== '' && username !== '' && password !== '' && password1 !== '' && tcsChecked.checked) {
         errorSpace.innerHTML = "";
 
         if(password === password1) {
             try{
-                let users = localStorage.getItem('users'); //list of all users
-                let newUsersArr = users ? JSON.parse(users) : {};
-                let userId = username;
-                function AddUser(fname, lname, email, passphrase, rememberMe) {
-                    this.fname = fname;
-                    this.lname = lname;
-                    this.email = email;
-                    this.passphrase = passphrase;
-                    this.rememberMe = rememberMe;
-                }
+                let users = localStorage.getItem('users'); //list of all existing users
+                let new_user_arr = users ? JSON.parse(users) : {};
 
-                let add_user = new AddUser(firstname, lastname, username,password,rememberMe=false);//instance of user
-                // newUsersArr.push(addUser);//push user to users array
-                // console.log(add_user());
-                localStorage.setItem('users', add_user);//add to local storage
-
-                setTimeout(()=>{//transition to dashboard
-                    // alert("Are you sure you want to leave page?")
+                let new_user = {
+                    fname: firstname,
+                    lname: lastname,
+                    pass: password,
+                    rememberMe: false
+                };
+                new_user_arr[username] = new_user;
+                localStorage.setItem('users', JSON.stringify(new_user_arr));
+                //transition to dashboard
+                setTimeout(()=>{
                     gotoDashBoard.style.display = "block";
                     gotoRegister.style.display = "none";
                 }, 1000);
@@ -96,10 +118,6 @@ function register(e) {
             catch(e){
                 console.log(e);
             }
-            // localStorage.setItem( 'firstname', firstname);
-            // localStorage.setItem( 'lastname', lastname);
-            // localStorage.setItem('username', username);
-            // localStorage.setItem( 'password', password);
         }
         else {
             errorSpace.innerHTML = "<span>Passwords did not match!</span>";
@@ -110,62 +128,53 @@ function register(e) {
     }
 }
 
+
+
 /*===================================Login=======================================*/
 const loginForm = document.getElementById("login-form");
 let errorSpace1 = loginForm.querySelector(".error");
-// let usernameSpace = document.querySelector('.navbar-brand');
-// submit event
+
 loginForm.addEventListener('submit', login, {once: true, passive:false});
 
 function login(e) {
     e.preventDefault();
     // login fields
-    const username = loginForm.querySelector("#user_name").value;
+    const username = loginForm.querySelector("#username").value;
     const password = loginForm.querySelector("#passsword").value;
     const isChecked = loginForm.querySelector("#check");
-    if(localStorage.getItem("rememberMe")) {
-        gotoLogin.style.display = "none";
-        gotoDashBoard.style.display = "block";
-    }
-    else if(username !== '' && password !== '') {
-        if(password === localStorage.getItem('password') && username === localStorage.getItem('username') && isChecked.checked) {
-            try {
-                let users = localStorage.getItem('users').split(','); //list of all users
-                console.log("Hello "+ users);
-            }
-            catch (e) {
-                console.log(e);
-            }
 
-            // let newUsersArr = users ? users.split(',') : [];
-            // localStorage.setItem('rememberMe', true);
-            // setTimeout(()=>{
-            //     // alert("Are you sure you want to leave page?")
-            //     gotoDashBoard.style.display = "block";
-            //     gotoLogin.style.display = "none";
-            // }, 1000);
-        }
-        else if(password === localStorage.getItem('password') && username === localStorage.getItem('username')) {
-            setTimeout(()=>{
-                // alert("Are you sure you want to leave page?")
-                gotoDashBoard.style.display = "block";
-                gotoLogin.style.display = "none";
-            }, 1000);
-        }
-        else {
-            errorSpace1.innerHTML = "<span>Invalid username or password!</span>";
-            try {
-                let users = localStorage.getItem('users'); //list of all users
-                let user = JSON.parse(users);
-                console.log("Hello on error "+ user);
-                // for(let userObj in users) {
-                //     let user = JSON.parse(userObj);
-                //     console.log("Hello on error "+ user);
-                // }
+    if(username !== '' && password !== '' && isChecked.checked) {
+        try {
+            let users_list = localStorage.getItem('users'); //list of all users
+            let to_obj = JSON.parse(users_list);
+            let context_user = to_obj[username];
+            if(context_user) {
+                if(password === context_user.pass) {
+                    let sessionlist = sessionStorage.getItem('loggedIn');
+                    let sess_to_obj = sessionlist ? JSON.parse(sessionlist) : {}
+                    let new_session_data = {
+                        user: username,
+                        rememberMe: true
+                    }
+                    sess_to_obj['new'] = new_session_data;
+                    sessionStorage.setItem('loggedIn', JSON.stringify(new_session_data));
+                    
+                    setTimeout(()=>{
+                        // alert("Are you sure you want to leave page?")
+                        gotoDashBoard.style.display = "block";
+                        gotoLogin.style.display = "none";
+                    }, 1000);
+                }
+                else {
+                    errorSpace1.innerHTML = "<span>Wrong password!</span>";
+                }
             }
-            catch (e) {
-                console.log(e);
+            else{
+                errorSpace1.innerHTML = "<span>Invalid username or password!</span>";
             }
+        }
+        catch (e) {
+            console.log(e);
         }
     }
     else {
@@ -173,49 +182,48 @@ function login(e) {
     }
 }
 
+
+
 /*===================================Logout=======================================*/
 const logoutBtn = document.getElementById("logout");
 logoutBtn.addEventListener('click', logout, {once:true, passive:true});
 
 function logout(event) {
     event.preventDefault();
-
-    // clear logged in data
-    localStorage.removeItem("rememberMe");
+    //get current session
+    let session_list = window.sessionStorage.removeItem('loggedIn');
+    // do
     gotoDashBoard.style.display = "none";
     gotoLogin.style.display = "block";
 }
 
-/*===================================Global rules=======================================*/
-// loginForm.addEventListener('click', (event) => {
-//     if(localStorage.getItem("rememberMe")) {
-//         defaultPage.style.display = "none";
-//         gotoDashBoard.style.display = "block";
-//     }
-// });
+
 
 /*===================================adding task to task list=======================================*/
 const newListForm = document.getElementById("addlist-form");
 const listTableBody = document.querySelector("#table-body");
 let errorSpace2 = newListForm.querySelector(".error");
 
+// adding new task labels
 newListForm.addEventListener('submit', addTaskLabel);
 
 function addTaskLabel(event) {
     event.preventDefault();
     const taskLabel = newListForm.querySelector("#task-title").value;
+    let taskId = 0;
     
     if(taskLabel !== '') {
         const existingTodoLabels = localStorage.getItem('tasklabels');
-        let taskLabelsArr = existingTodoLabels ? existingTodoLabels.split(',') : [];
+        let taskLabelsArr = existingTodoLabels ? JSON.parse(existingTodoLabels) : {};
+        taskId = ~~((Math.random() *10) + 1);
+        let new_task = {
+            label: taskLabel,
+            subtasks: {},
+        }
 
-        taskLabelsArr.push(taskLabel);
+        taskLabelsArr[taskId] = new_task;
 
-        localStorage.setItem('tasklabels', taskLabelsArr);
-        // listTableBody.appendChild(localStorage.getItem('tasklabel1'));
-        // const newrow = document.createElement("tr");
-        // listTableBody.appendChild(newrow);
-        // newrow.innerHTML = "<td>"+taskLabel+"</td><td><i class='bi bi-pen'></i></td><td><i class='bi bi-trash'></i></td>";
+        window.localStorage.setItem('tasklabels', JSON.stringify(taskLabelsArr));
     }
     else {
         errorSpace2.innerHTML = "<span>Cannot add an empty task label!</span>";
@@ -224,19 +232,22 @@ function addTaskLabel(event) {
 
 window.addEventListener('load', ()=>{
     try{
-        let listItem = localStorage.getItem('tasklabels').split(',');
-        // console.log(listItem.length);
-        for(let i in listItem) {
-            // console.log(listItem[i]);
-            const newrow = document.createElement("tr");
-            listTableBody.appendChild(newrow);
-            newrow.id = i;
-            newrow.innerHTML = "<td>"+listItem[i]+"</td><td><i class='bi bi-pen'></i></td><td><i class='bi bi-trash'></i></td>";
+        let listItems = localStorage.getItem('tasklabels');
+        let list_to_obj = listItems ? JSON.parse(listItems) : {};
+        let obj_keys = Object.entries(list_to_obj);
+        for(let i of obj_keys) {
+            for(let another in i) {
+                console.log(another);
+                const newrow = document.createElement("tr");
+                listTableBody.appendChild(newrow);
+                newrow.id = i[another][0];
+                newrow.innerHTML = "<td>"+i[another].label+"</td><td><i class='bi bi-pen'></i></td><td><i class='bi bi-trash'></i></td>";
+            }
         }
     }
     catch(e) {
-        const newrow = document.createElement("tr");
-        listTableBody.appendChild(newrow);
-        newrow.innerHTML = "<h4>No records to display</h4>";
+        // const newrow = document.createElement("tr");
+        // listTableBody.appendChild(newrow);
+        // newrow.innerHTML = "<h4>No records to display</h4>";
     }
 })
