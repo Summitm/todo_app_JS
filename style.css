@@ -1,0 +1,73 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root{
+    --border: solid 1px #FFF;
+}
+
+body{
+    background-color: aquamarine;
+}
+
+.login-btn{
+    margin-right: 4px;
+}
+
+a{
+    text-decoration: none;
+}
+
+.container{
+    margin: 0px auto;
+}
+
+.col-md-4{
+    border: var(--border);
+    padding: 14px;
+    border-radius: 10px;
+    z-index: 600;
+}
+#Login{
+    display: none;
+}
+#Register{
+    display: none;
+}
+
+.col-md-4{
+    padding: 20px;
+}
+
+.error{
+    color: red;
+}
+
+.navabar{
+    border-bottom: solid 1px #666969;
+}
+
+table thead, tr, td, th{
+    border: var(--border);
+}
+
+td, th{
+    /* padding: 5px; */
+    text-align: center;
+}
+
+td .bi {
+    color: #666969;
+    cursor: pointer;
+}
+
+td{
+    cursor: pointer;
+    color: blue;
+}
+
+#dashboard{
+    display: none;
+}
