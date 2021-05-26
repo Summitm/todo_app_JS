@@ -102,7 +102,7 @@
                     </ul>
                 </nav>
             </div>
-            <div class="row mt-4">
+            <div class="row mt-4" id="listlabel_section">
                 <div class="col-md-12 col-sm-12 justify-content-center">
                     <form method="POST" id="addlist-form">
                         <div class="error"></div>
@@ -127,6 +127,24 @@
                         </tbody>
 
                     </table>
+                </div>
+            </div>
+            <div class="row mt-4" id="profile-tools">
+                <div class="col-md-6 col-sm-12 justify-content-center">
+                    <form method="POST" id="update-form">
+                        <label for="username">Username</label>
+                        <input type="email" class="form-control" disabled id="u_name" name="uname">
+                        <label for="Name">First Name</label>
+                        <input type="text" class="form-control" id="f_name" name="fname">
+                        <label for="Last Name">Last Name</label>
+                        <input type="text" class="form-control" id="l_name" name="lname">
+                        <label for="password">Pasword</label>
+                        <input type="password" class="form-control" id="p1" minlength="6" name="pass1">
+                        <!-- <label for="password">Confirm Pasword</label> -->
+                        <!-- <input type="password" class="form-control" id="p2" name="pass2"> -->
+                        <br>
+                        <button type="submit" class="btn btn-lg btn-outline-dark form-control">Update</button>
+                    </form>
                 </div>
             </div>
         </section>

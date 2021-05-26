@@ -17,12 +17,20 @@ window.addEventListener('load', () => {
     }
 });
 
+function getLoggedInUser() {
+    let session_list = sessionStorage.getItem('loggedIn');
+    let isAlreadyLogged = JSON.parse(session_list);
+    const this_user = isAlreadyLogged.user;
+    return this_user;
+}
+
 const targetlink = document.querySelector("#gotoRegister");
 const targetlink2 = document.querySelector("#gotoLogin");
 const gotoLogin = document.querySelector("#Login");
 const gotoRegister = document.querySelector("#Register");
 const gotoDashBoard = document.querySelector("#dashboard");
 const defaultPage = document.querySelector("#default");
+const list_section = document.querySelector("#listlabel_section");
 
 
 
@@ -145,9 +153,8 @@ function login(e) {
 
     if(username !== '' && password !== '' && isChecked.checked) {
         try {
-            let users_list = localStorage.getItem('users'); //list of all users
-            let to_obj = JSON.parse(users_list);
-            let context_user = to_obj[username];
+            context_user = getUser(username);
+
             if(context_user) {
                 if(password === context_user.pass) {
                     let sessionlist = sessionStorage.getItem('loggedIn');
@@ -210,20 +217,22 @@ newListForm.addEventListener('submit', addTaskLabel);
 function addTaskLabel(event) {
     event.preventDefault();
     const taskLabel = newListForm.querySelector("#task-title").value;
-    let taskId = 0;
+    // let taskId = 0;
     
     if(taskLabel !== '') {
-        const existingTodoLabels = localStorage.getItem('tasklabels');
-        let taskLabelsArr = existingTodoLabels ? JSON.parse(existingTodoLabels) : {};
-        taskId = ~~((Math.random() *10) + 1);
+        let user = getLoggedInUser();
+        const existingTodoLabels = localStorage.getItem(user);
+        let taskLabelsArr = existingTodoLabels ? existingTodoLabels.split() : [];
+
         let new_task = {
             label: taskLabel,
             subtasks: {},
         }
+        taskLabelsArr.push(new_task);
+        window.localStorage.setItem(user, JSON.stringify(taskLabelsArr));
+        // console.table(existingTodoLabels.split(']'));
 
-        taskLabelsArr[taskId] = new_task;
-
-        window.localStorage.setItem('tasklabels', JSON.stringify(taskLabelsArr));
+        // taskId = ~~((Math.random() *10) + 1);
     }
     else {
         errorSpace2.innerHTML = "<span>Cannot add an empty task label!</span>";
@@ -232,22 +241,86 @@ function addTaskLabel(event) {
 
 window.addEventListener('load', ()=>{
     try{
-        let listItems = localStorage.getItem('tasklabels');
-        let list_to_obj = listItems ? JSON.parse(listItems) : {};
-        let obj_keys = Object.entries(list_to_obj);
-        for(let i of obj_keys) {
-            for(let another in i) {
-                console.log(another);
-                const newrow = document.createElement("tr");
-                listTableBody.appendChild(newrow);
-                newrow.id = i[another][0];
-                newrow.innerHTML = "<td>"+i[another].label+"</td><td><i class='bi bi-pen'></i></td><td><i class='bi bi-trash'></i></td>";
-            }
-        }
+        const get_labels = localStorage.getItem('tasklabels');
+        const to_arr = get_labels ? get_labels.split('},') : [];
+        
+        
+        // for(let labelItem of to_arr.label) {
+        //     if(labelItem !== "") {
+        //         console.log(labelItem)
+        //     }
+        // }
+        
     }
     catch(e) {
-        // const newrow = document.createElement("tr");
-        // listTableBody.appendChild(newrow);
-        // newrow.innerHTML = "<h4>No records to display</h4>";
+       listTableBody.innerHTML = "<h4>No records to display</h4>";
     }
 })
+
+function listLabels(label) {
+    const newrow = document.createElement("tr");
+    listTableBody.appendChild(newrow);
+    newrow.innerHTML = `<td>${label}</td>
+                        <td><i class='bi bi-pen'></i></td>
+                        <td><i class='bi bi-trash'></i></td>`;
+}
+
+
+/*===================================profile settings=======================================*/
+const profile_btn = document.querySelector("#account-settings");
+const profile_pg = document.querySelector("#profile-tools");
+const update_form = document.getElementById("update-form");
+// update fields
+const u_name = update_form.querySelector("#u_name");
+const f_name = update_form.querySelector("#f_name");
+const l_name = update_form.querySelector("#l_name");
+const p1 = update_form.querySelector("#p1");
+
+profile_btn.addEventListener('click', viewProfile, {once:true, passive: false});
+
+function viewProfile(event) {
+    event.preventDefault();
+
+    let current_user = getLoggedInUser();
+    profile_pg.style.display = "block";
+    list_section.style.display = "none";
+    let data = getUser(current_user);
+    u_name.value = current_user;
+    f_name.value = data.fname;
+    l_name.value = data.lname;
+    p1.value = data.pass;
+}
+
+function getUser(this_user) {
+    let users_list = localStorage.getItem('users'); //list of all users
+    let to_obj = JSON.parse(users_list);
+    let context_user = to_obj[this_user];
+    return context_user;
+}
+
+function updateProfile(event) {
+    event.preventDefault();
+    let users_list = localStorage.getItem('users'); //list of all users
+    let to_obj = JSON.parse(users_list);
+    let current_user = getLoggedInUser();
+
+    let olderData = to_obj;
+
+
+    const new_fname = update_form.querySelector("#f_name").value;
+    const new_lname = update_form.querySelector("#l_name").value;
+    const new_p1 = update_form.querySelector("#p1").value;
+
+    olderData[current_user] = {
+        fname: new_fname,
+        lname: new_lname,
+        pass: new_p1,
+        rememberMe: false
+    };
+    localStorage.setItem('users', JSON.stringify(olderData));
+    setTimeout(()=>{
+        alert("Your Profile was updated successfuly!");
+    }, 1000);
+}
+
+update_form.addEventListener('submit', updateProfile, {once: true, passive: false})
