@@ -209,7 +209,9 @@ function logout(event) {
 /*===================================adding task to task list=======================================*/
 const newListForm = document.getElementById("addlist-form");
 const listTableBody = document.querySelector("#table-body");
-let errorSpace2 = newListForm.querySelector(".error");
+const errorSpace2 = newListForm.querySelector(".error");
+const todo_task_list = document.querySelector("#task-lists");
+let taskLabelsArr = [];
 
 // adding new task labels
 newListForm.addEventListener('submit', addTaskLabel);
@@ -217,54 +219,91 @@ newListForm.addEventListener('submit', addTaskLabel);
 function addTaskLabel(event) {
     event.preventDefault();
     const taskLabel = newListForm.querySelector("#task-title").value;
-    // let taskId = 0;
-    
+
     if(taskLabel !== '') {
         let user = getLoggedInUser();
-        const existingTodoLabels = localStorage.getItem(user);
-        let taskLabelsArr = existingTodoLabels ? existingTodoLabels.split() : [];
+        const existingTodoLabels = localStorage.getItem('tasklabels');
 
-        let new_task = {
+        const new_task = {
+            taskId: ~~((Math.random() * 100) + 1),
             label: taskLabel,
-            subtasks: {},
-        }
+            completed: false
+        };
         taskLabelsArr.push(new_task);
-        window.localStorage.setItem(user, JSON.stringify(taskLabelsArr));
-        // console.table(existingTodoLabels.split(']'));
-
-        // taskId = ~~((Math.random() *10) + 1);
+        saveTaskToStorage(taskLabelsArr);
     }
     else {
         errorSpace2.innerHTML = "<span>Cannot add an empty task label!</span>";
     }
 }
 
-window.addEventListener('load', ()=>{
-    try{
-        const get_labels = localStorage.getItem('tasklabels');
-        const to_arr = get_labels ? get_labels.split('},') : [];
-        
-        
-        // for(let labelItem of to_arr.label) {
-        //     if(labelItem !== "") {
-        //         console.log(labelItem)
-        //     }
-        // }
-        
-    }
-    catch(e) {
-       listTableBody.innerHTML = "<h4>No records to display</h4>";
-    }
-})
-
-function listLabels(label) {
-    const newrow = document.createElement("tr");
-    listTableBody.appendChild(newrow);
-    newrow.innerHTML = `<td>${label}</td>
-                        <td><i class='bi bi-pen'></i></td>
-                        <td><i class='bi bi-trash'></i></td>`;
+function saveTaskToStorage(task) {
+    localStorage.setItem('tasklabels', JSON.stringify(task));
+    displayTaskLabels(task);
 }
 
+function displayTaskLabels(allTasks) {
+    todo_task_list.innerHTML = "";
+
+    allTasks.forEach( taskItem => {
+        const isCompleted = taskItem.completed ? 'checked' : '';
+        const li = document.createElement("li");
+        li.setAttribute('class', 'task');
+        li.id = taskItem.taskId;
+
+        li.innerHTML = `<input type="checkbox" ${isCompleted}>
+                        ${taskItem.label}
+                        <i class="bi bi-trash delete"></i>`;
+
+        if(taskItem.completed) {
+            li.classList.add(isCompleted);
+        }
+
+
+        todo_task_list.appendChild(li);
+    });
+}
+
+function fetchTasksLabels() {
+    const get_labels = localStorage.getItem('tasklabels');
+    if(get_labels) {
+        taskLabelsArr = JSON.parse(get_labels);
+        displayTaskLabels(taskLabelsArr);
+    }
+}
+
+fetchTasksLabels();
+
+function markAsCompleted(id) {
+    taskLabelsArr.forEach((task)=>{
+        if(task.taskId == id) {
+            task.completed = !task.completed;
+        }
+    })
+
+    saveTaskToStorage(taskLabelsArr);
+}
+
+function deleteTask(id) {
+    taskLabelsArr = taskLabelsArr.filter((a_task)=>{
+        return a_task.taskId != id;
+    });
+
+    saveTaskToStorage(taskLabelsArr);
+}
+
+
+// clicking any todolist
+todo_task_list.addEventListener('click', (event)=>{
+    if(event.target.type === 'checkbox') {
+        markAsCompleted(event.target.parentElement.getAttribute('id'));
+    }
+
+    
+    if(event.target.classList.contains('delete')) {
+        deleteTask(event.target.parentElement.getAttribute('id'));
+    }
+});
 
 /*===================================profile settings=======================================*/
 const profile_btn = document.querySelector("#account-settings");

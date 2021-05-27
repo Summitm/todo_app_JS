@@ -75,3 +75,17 @@ td{
 #profile-tools{
     display: none;
 }
+
+#task-lists li{
+    padding: 15px;
+    /* list-style: none; */
+}
+
+li{
+    padding-right: 10px;
+    word-spacing: 14px;
+}
+
+/* .checked {
+    text-decoration: line-through;
+} */
